@@ -6,6 +6,7 @@ openpyxl
 google-genai
 scikit-learn
 numpy
+matplotlib
 
 # Environment & Utilities
 python-dotenv
