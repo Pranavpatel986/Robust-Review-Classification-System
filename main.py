@@ -10,10 +10,13 @@ from monitor import SelfHealingMonitor
 # 1. Setup and Configuration
 load_dotenv()
 
-# Gemini 2.5 Flash works best on the standard v1 endpoint
+# Initialize the Gemini Client
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
+
+# Initialize the Monitor (This was the missing piece!)
+monitor = SelfHealingMonitor(threshold=0.2)
 
 # Use the exact Flash model name from your system check
 MODEL_ID = "models/gemini-2.5-flash" 
@@ -115,13 +118,15 @@ def run_pipeline():
             
         clean_review = str(review).strip().replace("\n", " ")
         
-        # FLASH PAUSE: Flash has higher RPM, so 2 seconds is enough
+        # Pause to manage rate limits
         time.sleep(2) 
         
         prediction = classify_review(clean_review)
         factors = prediction.get('factors', []) if isinstance(prediction, dict) else []
         
+        # Record to the monitor (Now defined!)
         monitor.record_prediction(factors)
+        
         valid_factors = [f for f in factors if f in TAXONOMY]
         results.append(", ".join(valid_factors))
         
